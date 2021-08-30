@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
+	"github.com/panjf2000/ants/v2"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 
@@ -60,6 +62,8 @@ var app = cli.App{
 	},
 	Action: func(c *cli.Context) error {
 		logger, _ := zap.NewDevelopment()
+		pool, _ := ants.NewPool(8) // We will use 8 workers.
+		wg := &sync.WaitGroup{}
 
 		k, err := kakashi.New(
 			c.String("registry"),
@@ -101,13 +105,20 @@ var app = cli.App{
 					oldImage := fmt.Sprintf("docker://%s:%s", imageName, tag)
 					newImage := fmt.Sprintf("docker://%s/%s/%s:%s", c.String("registry"), c.String("owner"), imageName, tag)
 
-					err = k.Copy(oldImage, newImage)
+					wg.Add(1)
+					err = pool.Submit(func() {
+						defer wg.Done()
+						_ = k.Copy(oldImage, newImage)
+					})
 					if err != nil {
+						logger.Error("submit task", zap.Error(err))
 						return err
 					}
 				}
 			}
 		}
+
+		wg.Wait()
 		return nil
 	},
 }

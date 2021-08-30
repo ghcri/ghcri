@@ -92,6 +92,9 @@ func ParseReader(r io.Reader) Stackbrew {
 		}
 
 		if strings.HasPrefix(content, "GitCommit") {
+			if cur == nil {
+				continue
+			}
 			cur.GitCommit = parseLine(content, "GitCommit")
 			continue
 		}

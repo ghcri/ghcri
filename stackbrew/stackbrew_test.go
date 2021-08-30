@@ -33,4 +33,15 @@ func TestParseReader(t *testing.T) {
 		s := ParseReader(f)
 		assert.Equal(t, "https://github.com/AdoptOpenJDK/openjdk-docker.git", s.GitRepo)
 	})
+
+	t.Run("amazoncorretto", func(t *testing.T) {
+		f, err := os.Open("testdata/amazoncorretto")
+		if err != nil {
+			t.Fatalf("open file: %v", err)
+		}
+		defer f.Close()
+
+		s := ParseReader(f)
+		assert.Equal(t, "https://github.com/corretto/corretto-docker.git", s.GitRepo)
+	})
 }
