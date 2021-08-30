@@ -20,6 +20,7 @@ type Stack struct {
 	SharedTags    []string
 	Architectures []string
 	GitCommit     string
+	File          string
 	Directory     string
 	Constraints   []string
 }
@@ -93,6 +94,11 @@ func ParseReader(r io.Reader) Stackbrew {
 
 		if strings.HasPrefix(content, "GitCommit") {
 			cur.GitCommit = parseLine(content, "GitCommit")
+			continue
+		}
+
+		if strings.HasPrefix(content, "File") {
+			cur.File = parseLine(content, "File")
 			continue
 		}
 
