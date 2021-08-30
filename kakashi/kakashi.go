@@ -45,6 +45,7 @@ func New(registry, username, password string) (k *Kakashi, err error) {
 		Password: password,
 		Username: username,
 		Stdout:   os.Stdout,
+		AuthFile: "/tmp/authfile", // Store authfile in temp, as we will not use it anymore
 	}, []string{registry})
 	if err != nil {
 		k.logger.Error("login registry",

@@ -37,4 +37,4 @@ jobs:
           GHCRI_OWNER: "ghcri"
           GHCRI_USERNAME: ${{secrets.GHCRI_USERNAME}}
           GHCRI_PASSWORD: ${{secrets.GHCRI_PASSWORD}}
-        run: sudo ./bin/ghcri data/library
+        run: ./bin/ghcri data/library
