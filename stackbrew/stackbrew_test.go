@@ -44,4 +44,14 @@ func TestParseReader(t *testing.T) {
 		s := ParseReader(f)
 		assert.Equal(t, "https://github.com/corretto/corretto-docker.git", s.GitRepo)
 	})
+
+	t.Run("bonita", func(t *testing.T) {
+		f, err := os.Open("testdata/bonita")
+		if err != nil {
+			t.Fatalf("open file: %v", err)
+		}
+		defer f.Close()
+
+		_ = ParseReader(f)
+	})
 }

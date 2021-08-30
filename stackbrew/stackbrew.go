@@ -33,6 +33,7 @@ func ParseReader(r io.Reader) Stackbrew {
 
 	var cur *Stack
 	sc := bufio.NewScanner(r)
+	global := true
 	for sc.Scan() {
 		content := sc.Text()
 
@@ -76,8 +77,15 @@ func ParseReader(r io.Reader) Stackbrew {
 				s.Stacks = append(s.Stacks, *cur)
 				cur = nil
 			}
+			// Since this tag, we are parsing stacks instead of global.
+			global = false
 			cur = &Stack{}
 			cur.Tags = parseSlice(content, "Tags")
+			continue
+		}
+
+		if global {
+			// We will ignore other global fields for now.
 			continue
 		}
 
@@ -92,9 +100,6 @@ func ParseReader(r io.Reader) Stackbrew {
 		}
 
 		if strings.HasPrefix(content, "GitCommit") {
-			if cur == nil {
-				continue
-			}
 			cur.GitCommit = parseLine(content, "GitCommit")
 			continue
 		}
