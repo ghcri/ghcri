@@ -97,7 +97,7 @@ func ParseReader(r io.Reader) Stackbrew {
 		}
 
 		if strings.HasPrefix(content, "Directory") {
-			cur.GitCommit = parseLine(content, "Directory")
+			cur.Directory = parseLine(content, "Directory")
 			continue
 		}
 
