@@ -62,6 +62,8 @@ func New(registry, username, password string) (k *Kakashi, err error) {
 }
 
 func (k *Kakashi) Copy(oldName, newName string) (err error) {
+	ctx := context.Background()
+
 	src, err := alltransports.ParseImageName(oldName)
 	if err != nil {
 		k.logger.Error("parse old image name",
@@ -81,11 +83,12 @@ func (k *Kakashi) Copy(oldName, newName string) (err error) {
 		zap.String("src", src.StringWithinTransport()),
 		zap.String("dst", dst.StringWithinTransport()))
 
-	_, err = copy.Image(context.Background(), k.pc, dst, src,
+	_, err = copy.Image(ctx, k.pc, dst, src,
 		&copy.Options{
 			OptimizeDestinationImageAlreadyExists: true,
 			DestinationCtx:                        k.sc,
 			ReportWriter:                          os.Stderr,
+			ImageListSelection:                    copy.CopyAllImages,
 		},
 	)
 	if err != nil {
