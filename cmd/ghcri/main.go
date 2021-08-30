@@ -93,7 +93,11 @@ var app = cli.App{
 
 			imageName := file.Name()
 			for _, stack := range sb.Stacks {
-				for _, tag := range stack.Tags {
+				var tags []string
+				tags = append(tags, stack.Tags...)
+				tags = append(tags, stack.SharedTags...)
+
+				for _, tag := range tags {
 					oldImage := fmt.Sprintf("docker://%s:%s", imageName, tag)
 					newImage := fmt.Sprintf("docker://%s/%s/%s:%s", c.String("registry"), c.String("owner"), imageName, tag)
 

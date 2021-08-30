@@ -3,7 +3,6 @@ package stackbrew
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"strings"
 )
@@ -112,7 +111,8 @@ func ParseReader(r io.Reader) Stackbrew {
 			continue
 		}
 
-		panic(fmt.Errorf("line %s is not parsed correctly", content))
+		println("line is not parsed correctly: ", content)
+		continue
 	}
 	// Handle the last item of stack.
 	if cur != nil {
