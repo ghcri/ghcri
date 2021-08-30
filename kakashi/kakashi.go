@@ -17,17 +17,24 @@ type Kakashi struct {
 
 	registry string
 
+	sc *types.SystemContext
 	pc *signature.PolicyContext
 }
 
 func New(registry, username, password string) (k *Kakashi, err error) {
 	logger, _ := zap.NewDevelopment()
-	sc := &types.SystemContext{
+
+	k = &Kakashi{
+		logger:   logger,
+		registry: registry,
+	}
+
+	k.sc = &types.SystemContext{
 		// Store authfile in temp, as we will not use it anymore
 		AuthFilePath: "/tmp/authfile",
 	}
 
-	policy, err := signature.DefaultPolicy(sc)
+	policy, err := signature.DefaultPolicy(k.sc)
 	if err != nil {
 		logger.Error("new policy", zap.Error(err))
 		return nil, err
@@ -37,14 +44,9 @@ func New(registry, username, password string) (k *Kakashi, err error) {
 		logger.Error("new policy context", zap.Error(err))
 		return nil, err
 	}
+	k.pc = pc
 
-	k = &Kakashi{
-		logger:   logger,
-		registry: registry,
-		pc:       pc,
-	}
-
-	err = auth.Login(context.Background(), sc, &auth.LoginOptions{
+	err = auth.Login(context.Background(), k.sc, &auth.LoginOptions{
 		Password: password,
 		Username: username,
 		Stdout:   os.Stdout,
@@ -82,8 +84,8 @@ func (k *Kakashi) Copy(oldName, newName string) (err error) {
 	_, err = copy.Image(context.Background(), k.pc, dst, src,
 		&copy.Options{
 			OptimizeDestinationImageAlreadyExists: true,
-
-			ReportWriter: os.Stderr,
+			DestinationCtx:                        k.sc,
+			ReportWriter:                          os.Stderr,
 		},
 	)
 	if err != nil {
