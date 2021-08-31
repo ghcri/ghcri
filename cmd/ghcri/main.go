@@ -61,66 +61,91 @@ var app = cli.App{
 		return nil
 	},
 	Action: func(c *cli.Context) error {
-		logger, _ := zap.NewDevelopment()
-		pool, _ := ants.NewPool(8) // We will use 8 workers.
-		wg := &sync.WaitGroup{}
+		return handle(c)
+	},
+}
 
-		k, err := kakashi.New(
-			c.String("registry"),
-			c.String("username"),
-			c.String("password"))
-		if err != nil {
-			return err
-		}
+func handle(c *cli.Context) error {
+	logger, _ := zap.NewDevelopment()
+	pool, _ := ants.NewPool(8) // We will use 8 workers.
+	wg := &sync.WaitGroup{}
 
-		dentry, err := os.ReadDir(c.Args().First())
+	k, err := kakashi.New(
+		c.String("registry"),
+		c.String("username"),
+		c.String("password"))
+	if err != nil {
+		return err
+	}
+
+	dentry, err := os.ReadDir(c.Args().First())
+	if err != nil {
+		logger.Error("read dir",
+			zap.String("path", c.Args().First()),
+			zap.Error(err))
+		return err
+	}
+
+	registry := c.String("registry")
+	owner := c.String("owner")
+
+	for _, file := range dentry {
+		path := filepath.Join(c.Args().First(), file.Name())
+		content, err := os.ReadFile(path)
 		if err != nil {
-			logger.Error("read dir",
+			logger.Error("open file",
 				zap.String("path", c.Args().First()),
 				zap.Error(err))
 			return err
 		}
 
-		for _, file := range dentry {
-			path := filepath.Join(c.Args().First(), file.Name())
-			content, err := os.ReadFile(path)
+		sb := stackbrew.ParseBytes(content)
+
+		logger.Info("Start handling", zap.String("file", file.Name()))
+
+		imageName := file.Name()
+		for _, stack := range sb.Stacks {
+			var tags []string
+			tags = append(tags, stack.Tags...)
+			tags = append(tags, stack.SharedTags...)
+
+			// Ignore stack that doesn't have tags.
+			if len(tags) == 0 {
+				continue
+			}
+
+			// Copy the first tag.
+			firstTag := tags[0]
+			oldImage := fmt.Sprintf("docker://%s:%s", imageName, firstTag)
+			newImage := fmt.Sprintf("docker://%s/%s/%s:%s", registry, owner, imageName, firstTag)
+
+			err = k.Copy(oldImage, newImage)
 			if err != nil {
-				logger.Error("open file",
-					zap.String("path", c.Args().First()),
-					zap.Error(err))
+				logger.Error("copy first tag", zap.Error(err))
 				return err
 			}
 
-			sb := stackbrew.ParseBytes(content)
+			// Copy will only change tags.
+			fullImageName := fmt.Sprintf("docker://%s/%s/%s", registry, owner, imageName)
+			for _, tag := range tags[1:] {
+				oldImage := fmt.Sprintf("%s:%s", fullImageName, firstTag)
+				newImage := fmt.Sprintf("%s:%s", fullImageName, tag)
 
-			logger.Info("Start handling", zap.String("file", file.Name()))
-
-			imageName := file.Name()
-			for _, stack := range sb.Stacks {
-				var tags []string
-				tags = append(tags, stack.Tags...)
-				tags = append(tags, stack.SharedTags...)
-
-				for _, tag := range tags {
-					oldImage := fmt.Sprintf("docker://%s:%s", imageName, tag)
-					newImage := fmt.Sprintf("docker://%s/%s/%s:%s", c.String("registry"), c.String("owner"), imageName, tag)
-
-					wg.Add(1)
-					err = pool.Submit(func() {
-						defer wg.Done()
-						_ = k.Copy(oldImage, newImage)
-					})
-					if err != nil {
-						logger.Error("submit task", zap.Error(err))
-						return err
-					}
+				wg.Add(1)
+				err = pool.Submit(func() {
+					defer wg.Done()
+					_ = k.Copy(oldImage, newImage)
+				})
+				if err != nil {
+					logger.Error("submit task", zap.Error(err))
+					return err
 				}
 			}
 		}
+	}
 
-		wg.Wait()
-		return nil
-	},
+	wg.Wait()
+	return nil
 }
 
 func main() {
