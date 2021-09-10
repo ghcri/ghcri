@@ -13,7 +13,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/containerd/cgroups v1.0.1 // indirect
 	github.com/containerd/containerd v1.5.1 // indirect
-	github.com/containers/common v0.42.1
+	github.com/containers/common v0.43.2
 	github.com/containers/image/v5 v5.15.2
 	github.com/containers/libtrust v0.0.0-20190913040956-14b96171aa3b // indirect
 	github.com/containers/ocicrypt v1.1.2 // indirect
@@ -21,7 +21,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v20.10.7+incompatible // indirect
+	github.com/docker/docker v20.10.8+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.6.4 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
