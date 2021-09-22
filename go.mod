@@ -13,7 +13,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/containerd/cgroups v1.0.1 // indirect
 	github.com/containerd/containerd v1.5.1 // indirect
-	github.com/containers/common v0.44.0
+	github.com/containers/common v0.44.1
 	github.com/containers/image/v5 v5.16.0
 	github.com/containers/libtrust v0.0.0-20190913040956-14b96171aa3b // indirect
 	github.com/containers/ocicrypt v1.1.2 // indirect
